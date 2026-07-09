@@ -66,6 +66,7 @@ Route::get('/run-migrations', function() {
     }
 });
 
+ // 👉 https://organicrootsbd.com/clear-cache   ২. ব্রাউজারে প্রথমে এই লিংকে গিয়ে ক্যাশ ক্লিয়ার করুন:
 
-
+ //👉 https://organicrootsbd.com/run-migrations ৩. এরপর এই লিংকে গিয়ে মাইগ্রেশনটি পুনরায় রান করুন:
 
