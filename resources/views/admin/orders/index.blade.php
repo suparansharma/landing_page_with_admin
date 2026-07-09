@@ -57,9 +57,12 @@
                     <td>{{ $order->created_at->format('M d, Y h:i A') }}</td>
                     <td>
                         @if($order->landingPage)
-                            <a href="{{ route('landing.show', $order->landingPage->slug) }}" target="_blank">{{ $order->landingPage->title }}</a>
+                            <a href="{{ route('product.show', $order->landingPage->slug) }}" target="_blank">{{ $order->landingPage->title }}</a>
                         @else
                             N/A
+                        @endif
+                        @if($order->product_option)
+                            <div class="small text-muted fw-semibold mt-1">Option: {{ $order->product_option }}</div>
                         @endif
                     </td>
                     <td>{{ $order->customer->name ?? 'N/A' }}</td>

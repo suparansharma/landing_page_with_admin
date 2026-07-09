@@ -9,4 +9,8 @@ class LandingPage extends Model
 {
     use HasFactory;
     protected $guarded = [];
+
+    protected $casts = [
+        'product_options' => 'array',
+    ];
 }

@@ -324,9 +324,116 @@
             padding: 15px;
             font-size: 12px;
         }
+
+        /* Product Options Styles */
+        .options-section {
+            padding: 20px 20px 0 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .options-title {
+            color: #28a745;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .option-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 6px;
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .option-card.active {
+            border-color: #28a745;
+            background-color: #f8fff8;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.08);
+        }
+        
+        .option-card input {
+            margin-top: 5px;
+            margin-right: 12px;
+        }
+        
+        .option-card .ribbon {
+            position: absolute;
+            top: 12px;
+            right: -28px;
+            background: #dc3545;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 30px;
+            transform: rotate(45deg);
+        }
     </style>
+    <!-- Global site tag (gtag.js) - Google Analytics / Google Ads -->
+    @if($page->ga4_id || $page->google_ads_id)
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $page->ga4_id ?? $page->google_ads_id }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            @if($page->ga4_id)
+                gtag('config', '{{ $page->ga4_id }}');
+            @endif
+
+            @if($page->google_ads_id)
+                gtag('config', '{{ $page->google_ads_id }}');
+            @endif
+        </script>
+    @endif
+
+    <!-- Meta Pixel Code -->
+    @if($page->meta_pixel_id)
+        <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ $page->meta_pixel_id }}');
+        fbq('track', 'PageView');
+        </script>
+        <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id={{ $page->meta_pixel_id }}&ev=PageView&noscript=1"
+        /></noscript>
+    @endif
+
+    <!-- Google Tag Manager -->
+    @if($page->gtm_id)
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','{{ $page->gtm_id }}');</script>
+    @endif
 </head>
 <body>
+    @if($page->gtm_id)
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $page->gtm_id }}"
+        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    @endif
 
     <div class="header-section">
         <div class="header-title">{{ $page->title }}</div>
@@ -401,79 +508,97 @@
 
 
         </div>
-        <form action="{{ route('landing.order', $page->slug) }}" method="POST">
+        <form action="{{ route('product.order', $page->slug) }}" method="POST">
             @csrf
+
+            @if($page->product_options && count($page->product_options) > 0)
+            <div class="options-section">
+                <h4 class="options-title">কোয়ালিটি বিবেচনা করে যেকোনো একটি অপশন সিলেক্ট করুন</h4>
+                <div class="options-grid">
+                    @foreach($page->product_options as $index => $option)
+                    <label class="option-card @if($index === 0) active @endif">
+                        @if(!empty($option['badge']))
+                            <div class="ribbon">{{ $option['badge'] }}</div>
+                        @endif
+                        <input type="radio" name="product_option_index" value="{{ $index }}" @if($index === 0) checked @endif onchange="updateTotal()">
+                        <div>
+                            <b style="font-size: 15px; color: #333;">{{ $option['name'] }}</b>
+                            <div style="font-size: 13px; color: #666; margin-top: 5px; line-height: 1.4;">{{ $option['description'] }}</div>
+                            <div style="color: #dc3545; font-weight: bold; margin-top: 8px; font-size: 16px;">৳ {{ number_format($option['price']) }}</div>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
         <div class="checkout-body">
             <div class="checkout-left">
-                <div class="section-title">বিকাশ/নগদ পেমেন্ট করতে চাইলে এই নাম্বারে সেন্ড মানি করুন</div>
-                
-                <label class="shipping-card">
-                    <div>
-                        <input type="radio" name="shipping" value="60" checked onchange="updateTotal()">
-                        <b>ঢাকার ভিতরে ডেলিভারি</b>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">ঢাকা শহরের মধ্যে হোম ডেলিভারি - ডেলিভারি চার্জ ৬০ টাকা</div>
-                        <div style="color: #dc3545; font-weight: bold; margin-top: 5px;">৳ ৬০</div>
-                    </div>
-                </label>
-                
-                <label class="shipping-card">
-                    <div class="ribbon">জনপ্রিয়</div>
-                    <div>
-                        <input type="radio" name="shipping" value="100" onchange="updateTotal()">
-                        <b>ঢাকার বাইরে ডেলিভারি</b>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">ঢাকার বাইরে যেকোনো স্থানে হোম ডেলিভারি - ডেলিভারি চার্জ ১০০ টাকা</div>
-                        <div style="color: #dc3545; font-weight: bold; margin-top: 5px;">৳ ১০০</div>
-                    </div>
-                </label>
-            </div>
-            
-            <div class="checkout-right">
                 <div class="section-title">Billing details</div>
                 
                 <div class="form-group">
-                        <label>আপনার নাম *</label>
-                        <input type="text" name="name" required>
+                    <label>আপনার নাম লিখুন *</label>
+                    <input type="text" name="name" required placeholder="আপনার নাম লিখুন">
+                </div>
+                
+                <div class="form-group">
+                    <label>মোবাইল নাম্বার লিখুন *</label>
+                    <input type="tel" name="phone" required placeholder="মোবাইল নাম্বার লিখুন">
+                </div>
+                
+                <div class="form-group">
+                    <label>আপনার ঠিকানা লিখুন *</label>
+                    <input type="text" name="address" required placeholder="আপনার ঠিকানা লিখুন">
+                </div>
+                
+                <div class="form-group">
+                    <label>থানা অথবা উপজেলা *</label>
+                    <input type="text" name="thana" required placeholder="থানা অথবা উপজেলা লিখুন">
+                </div>
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="margin-bottom: 2px;">Country / Region *</label>
+                    <div style="font-weight: bold; color: #28a745; font-size: 14px;">Bangladesh</div>
+                </div>
+            </div>
+            
+            <div class="checkout-right">
+                <div class="section-title">Your order</div>
+                
+                <div style="margin-bottom: 20px; padding: 15px; background: #fff9e6; border: 1px solid #ffc107; border-radius: 4px; font-size: 14px; text-align: left;">
+                    <b>বিকাশ/নগদ পেমেন্ট করতে চাইলে এই নাম্বারে সেন্ড মানি করুন:</b>
+                    <p style="color: #dc3545; font-weight: bold; margin-top: 5px; font-size: 16px; margin-bottom: 0;">{{ $page->phone_number ?? '01854-472049' }}</p>
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-row" style="border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight: bold;">
+                        <span>Product</span>
+                        <span>Subtotal</span>
+                    </div>
+                    <div class="summary-row" style="padding-top: 8px;">
+                        <span style="color: #28a745;" id="summary-product-name">{{ $page->weight_text ?? 'ইলিশ মাছের আচার (২০০ গ্রাম)' }} x 1</span>
+                        <span style="color: #28a745;" id="summary-product-price">৳ {{ $page->current_price ?? '৩৫০' }}</span>
+                    </div>
+                    <div class="summary-row" style="border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                        <span>Subtotal</span>
+                        <span id="summary-subtotal">৳ {{ $page->current_price ?? '৩৫০' }}</span>
+                    </div>
+                    <div class="summary-row" style="padding-top: 8px;">
+                        <span>Shipping</span>
+                        <span id="shipping-cost">৳ ১০০</span>
+                    </div>
+                    <div class="summary-row total" style="border-top: 1px solid #ddd; padding-top: 10px; font-weight: bold; font-size: 16px;">
+                        <span>Total</span>
+                        <span id="total-cost">৳ ৪৫০</span>
                     </div>
                     
-                    <div class="form-group">
-                        <label>মোবাইল নাম্বার *</label>
-                        <input type="tel" name="phone" required>
+                    <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; font-size: 13px; border-radius: 4px;">
+                        ক্যাশ অন ডেলিভারি
+                        <p style="color: #666; margin-top: 5px; margin-bottom: 0;">পণ্য হাতে পেয়ে পেমেন্ট করুন।</p>
                     </div>
                     
-                    <div class="form-group">
-                        <label>আপনার ঠিকানা *</label>
-                        <input type="text" name="address" required>
-                    </div>
-                    
-                    <div class="order-summary">
-                        <div class="summary-row">
-                            <span>Product</span>
-                            <span>Subtotal</span>
-                        </div>
-                        <div class="summary-row">
-                            <span style="color: #28a745;">{{ $page->weight_text ?? 'ইলিশ মাছের আচার (২০০ গ্রাম)' }} x 1</span>
-                            <span style="color: #28a745;">৳ {{ $page->current_price ?? '৩৫০' }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Subtotal</span>
-                            <span>৳ {{ $page->current_price ?? '৩৫০' }}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Shipping</span>
-                            <span id="shipping-cost">৳ ৬০</span>
-                        </div>
-                        <div class="summary-row total">
-                            <span>Total</span>
-                            <span id="total-cost">৳ ৪১০</span>
-                        </div>
-                        
-                        <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; font-size: 13px;">
-                            ক্যাশ অন ডেলিভারি
-                            <p style="color: #666; margin-top: 5px;">পণ্য হাতে পেয়ে পেমেন্ট করুন।</p>
-                        </div>
-                        
-                        <button type="submit" class="btn-submit">🔒 Place Order ৳ <span id="btn-total">410</span></button>
-                    </div>
+                    <button type="submit" class="btn-submit">🔒 Place Order ৳ <span id="btn-total">450</span></button>
+                </div>
             </div>
         </div>
         </form>
@@ -484,19 +609,10 @@
     </div>
 
     <script>
+        const productOptions = @json($page->product_options ?? []);
+
         function updateTotal() {
-            const shippingOptions = document.getElementsByName('shipping');
-            let shippingCost = 60;
-            
-            for (let i = 0; i < shippingOptions.length; i++) {
-                const parent = shippingOptions[i].closest('.shipping-card');
-                if (shippingOptions[i].checked) {
-                    shippingCost = parseInt(shippingOptions[i].value);
-                    parent.classList.add('active');
-                } else {
-                    parent.classList.remove('active');
-                }
-            }
+            let shippingCost = 100;
             
             function parseBnNum(str) {
                 if (!str) return 0;
@@ -505,16 +621,53 @@
                 return parseFloat(enStr.replace(/[^\d.-]/g, '')) || 0;
             }
             
-            const productCost = parseBnNum('{{ $page->current_price ?? "350" }}');
+            let productCost = 0;
+            let productName = '';
+            
+            if (productOptions && productOptions.length > 0) {
+                const optionRadios = document.getElementsByName('product_option_index');
+                let selectedIndex = 0;
+                for (let i = 0; i < optionRadios.length; i++) {
+                    const parent = optionRadios[i].closest('.option-card');
+                    if (optionRadios[i].checked) {
+                        selectedIndex = i;
+                        parent.classList.add('active');
+                    } else {
+                        parent.classList.remove('active');
+                    }
+                }
+                const selectedOption = productOptions[selectedIndex];
+                productCost = parseFloat(selectedOption.price);
+                productName = selectedOption.name;
+            } else {
+                productCost = parseBnNum('{{ $page->current_price ?? "350" }}');
+                productName = '{{ $page->weight_text ?? "ইলিশ মাছের আচার (২০০ গ্রাম)" }}';
+            }
+            
             const total = productCost + shippingCost;
             
             // Convert to Bengali numerals
             const bnShippingCost = convertToBn(shippingCost);
+            const bnProductCost = convertToBn(productCost);
             const bnTotal = convertToBn(total);
             
             document.getElementById('shipping-cost').innerText = '৳ ' + bnShippingCost;
             document.getElementById('total-cost').innerText = '৳ ' + bnTotal;
             document.getElementById('btn-total').innerText = total;
+
+            const summaryNameEl = document.getElementById('summary-product-name');
+            const summaryPriceEl = document.getElementById('summary-product-price');
+            const summarySubtotalEl = document.getElementById('summary-subtotal');
+            
+            if (summaryNameEl) {
+                summaryNameEl.innerText = productName + ' x 1';
+            }
+            if (summaryPriceEl) {
+                summaryPriceEl.innerText = '৳ ' + bnProductCost;
+            }
+            if (summarySubtotalEl) {
+                summarySubtotalEl.innerText = '৳ ' + bnProductCost;
+            }
         }
         
         function convertToBn(num) {
@@ -535,6 +688,33 @@
                 confirmButtonText: 'ঠিক আছে',
                 confirmButtonColor: '#28a745'
             });
+
+            // Track Facebook Pixel Purchase
+            @if($page->meta_pixel_id)
+                fbq('track', 'Purchase', {
+                    value: {{ session('order_total') ?? 0 }},
+                    currency: 'BDT'
+                });
+            @endif
+
+            // Track GA4 Purchase
+            @if($page->ga4_id)
+                gtag('event', 'purchase', {
+                    transaction_id: '{{ session('order_id') }}',
+                    value: {{ session('order_total') ?? 0 }},
+                    currency: 'BDT'
+                });
+            @endif
+
+            // Track Google Ads Conversion
+            @if($page->google_ads_id && $page->google_ads_label)
+                gtag('event', 'conversion', {
+                    'send_to': '{{ $page->google_ads_id }}/{{ $page->google_ads_label }}',
+                    'value': {{ session('order_total') ?? 0 }},
+                    'currency': 'BDT',
+                    'transaction_id': '{{ session('order_id') }}'
+                });
+            @endif
         @endif
         
         @if($errors->any())

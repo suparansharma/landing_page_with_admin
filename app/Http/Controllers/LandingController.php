@@ -23,39 +23,59 @@ class LandingController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
-            'shipping' => 'required|numeric'
+            'thana' => 'required|string|max:255',
+            'product_option_index' => 'nullable|integer'
         ]);
 
         // Create Customer
         $customer = Customer::create([
             'name' => $data['name'],
             'phone' => $data['phone'],
-            'address' => $data['address'],
+            'address' => $data['address'] . ', Thana/Upazila: ' . $data['thana'],
         ]);
 
-        $productCost = $page->current_price ?? '350';
-        
-        $bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-        $en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        $productCostEn = str_replace($bn, $en, $productCost);
-        
-        $productCostNum = (float) filter_var($productCostEn, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        if ($productCostNum <= 0) $productCostNum = 350;
-        
-        $shippingCost = (float) $data['shipping'];
+        $productCostNum = 0;
+        $selectedOptionName = null;
+
+        if ($page->product_options && is_array($page->product_options) && isset($data['product_option_index'])) {
+            $options = $page->product_options;
+            $index = (int) $data['product_option_index'];
+            if (isset($options[$index])) {
+                $productCostNum = (float) $options[$index]['price'];
+                $selectedOptionName = $options[$index]['name'];
+            }
+        }
+
+        // Fallback if no option selected or invalid index
+        if ($productCostNum <= 0) {
+            $productCost = $page->current_price ?? '350';
+            $bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+            $en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            $productCostEn = str_replace($bn, $en, $productCost);
+            $productCostNum = (float) filter_var($productCostEn, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+            if ($productCostNum <= 0) $productCostNum = 350;
+            
+            $selectedOptionName = $page->weight_text ?? 'ইলিশ মাছের আচার (২০০ গ্রাম)';
+        }
+
+        $shippingCost = 100.00;
         $totalAmount = $productCostNum + $shippingCost;
 
         // Create Order
-        Order::create([
+        $order = Order::create([
             'landing_page_id' => $page->id,
             'customer_id' => $customer->id,
-            'shipping_area' => $shippingCost == 60 ? 'Inside Dhaka' : 'Outside Dhaka',
+            'shipping_area' => 'Flat Shipping',
             'shipping_cost' => $shippingCost,
             'product_cost' => $productCostNum,
             'total_amount' => $totalAmount,
+            'product_option' => $selectedOptionName,
             'status' => 'Pending'
         ]);
 
-        return redirect()->back()->with('success', 'আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।');
+        return redirect()->back()
+            ->with('success', 'আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।')
+            ->with('order_id', $order->id)
+            ->with('order_total', $order->total_amount);
     }
 }

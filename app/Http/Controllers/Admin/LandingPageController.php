@@ -36,6 +36,16 @@ class LandingPageController extends Controller
             'delivery_text' => 'nullable|string|max:255',
             'guarantee_text' => 'nullable|string|max:255',
             'alert_text' => 'nullable|string|max:255',
+            'product_options' => 'nullable|array',
+            'product_options.*.name' => 'required|string|max:255',
+            'product_options.*.price' => 'required|numeric|min:0',
+            'product_options.*.description' => 'nullable|string',
+            'product_options.*.badge' => 'nullable|string',
+            'meta_pixel_id' => 'nullable|string|max:50',
+            'gtm_id' => 'nullable|string|max:50',
+            'ga4_id' => 'nullable|string|max:50',
+            'google_ads_id' => 'nullable|string|max:50',
+            'google_ads_label' => 'nullable|string|max:100',
         ]);
 
         if ($request->hasFile('main_image')) {
@@ -78,6 +88,16 @@ class LandingPageController extends Controller
             'delivery_text' => 'nullable|string|max:255',
             'guarantee_text' => 'nullable|string|max:255',
             'alert_text' => 'nullable|string|max:255',
+            'product_options' => 'nullable|array',
+            'product_options.*.name' => 'required|string|max:255',
+            'product_options.*.price' => 'required|numeric|min:0',
+            'product_options.*.description' => 'nullable|string',
+            'product_options.*.badge' => 'nullable|string',
+            'meta_pixel_id' => 'nullable|string|max:50',
+            'gtm_id' => 'nullable|string|max:50',
+            'ga4_id' => 'nullable|string|max:50',
+            'google_ads_id' => 'nullable|string|max:50',
+            'google_ads_label' => 'nullable|string|max:100',
         ]);
 
         if ($request->hasFile('main_image')) {

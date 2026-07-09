@@ -37,10 +37,35 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::resource('users', UserController::class, ['as' => 'admin'])->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 });
 
-Route::get('/landing/{slug}', [LandingController::class, 'show'])->name('landing.show');
-Route::post('/landing/{slug}/order', [LandingController::class, 'storeOrder'])->name('landing.order');
+Route::get('/product/{slug}', [LandingController::class, 'show'])->name('product.show');
+Route::post('/product/{slug}/order', [LandingController::class, 'storeOrder'])->name('product.order');
+
+Route::get('/landing/{slug}', function ($slug) {
+    return redirect()->route('product.show', ['slug' => $slug]);
+});
+Route::post('/landing/{slug}/order', [LandingController::class, 'storeOrder']);
 
 
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+Route::get('/clear-cache', function() {
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    return "Cache cleared successfully!";
+});
+
+Route::get('/run-migrations', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        return "Migrations run successfully! Output: <pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+    } catch (\Throwable $e) {
+        return "Error running migrations: <pre>" . $e->getMessage() . "</pre>";
+    }
+});
+
+
+
+

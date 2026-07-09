@@ -26,7 +26,7 @@
                     <td>{{ $page->title }}</td>
                     <td>{{ $page->created_at->format('M d, Y') }}</td>
                     <td>
-                        <a href="{{ route('landing.show', $page->slug) }}" target="_blank" class="btn btn-sm btn-success">View</a>
+                        <a href="{{ route('product.show', $page->slug) }}" target="_blank" class="btn btn-sm btn-success">View</a>
                         <a href="{{ route('admin.landing-pages.edit', $page->id) }}" class="btn btn-sm btn-info text-white">Edit</a>
                         <form action="{{ route('admin.landing-pages.destroy', $page->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?');">
                             @csrf
