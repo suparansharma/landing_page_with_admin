@@ -311,10 +311,19 @@
             border-radius: 4px;
             cursor: pointer;
             margin-top: 15px;
+            transition: background-color 0.3s;
         }
         
         .btn-submit:hover {
             background-color: #ff8080;
+        }
+        
+        .btn-submit.active {
+            background-color: #dc3545; /* Dark red */
+        }
+        
+        .btn-submit.active:hover {
+            background-color: #c82333;
         }
         
         .footer {
@@ -547,14 +556,11 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>আপনার ঠিকানা লিখুন *</label>
+                    <label>আপনার ঠিকানা লিখুন (গ্রাম, থানা, জেলা) *</label>
                     <input type="text" name="address" required placeholder="আপনার ঠিকানা লিখুন">
                 </div>
                 
-                <div class="form-group">
-                    <label>থানা অথবা উপজেলা *</label>
-                    <input type="text" name="thana" required placeholder="থানা অথবা উপজেলা লিখুন">
-                </div>
+
                 
                 <div class="form-group" style="margin-top: 15px;">
                     <label style="margin-bottom: 2px;">Country / Region *</label>
@@ -573,10 +579,20 @@
                 <div class="order-summary">
                     <div class="summary-row" style="border-bottom: 1px solid #eee; padding-bottom: 8px; font-weight: bold;">
                         <span>Product</span>
-                        <span>Subtotal</span>
+                        <span>Quantity & Price</span>
+                    </div>
+                    <div class="summary-row" style="padding-top: 8px; align-items: center;">
+                        <span style="color: #28a745; display: flex; align-items: center; gap: 10px;">
+                            <span id="summary-product-name">{{ $page->weight_text ?? 'ইলিশ মাছের আচার (২০০ গ্রাম)' }}</span>
+                        </span>
+                        <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; height: 28px;">
+                            <button type="button" onclick="changeQty(-1)" style="border: none; background: #f8f9fa; padding: 0 10px; cursor: pointer; height: 100%; font-weight: bold; font-size: 16px;">-</button>
+                            <input type="number" name="quantity" id="quantity" value="1" min="1" style="width: 40px; border: none; text-align: center; font-weight: bold; border-left: 1px solid #ddd; border-right: 1px solid #ddd; padding: 0; height: 100%; -moz-appearance: textfield;" onchange="updateTotal()" readonly>
+                            <button type="button" onclick="changeQty(1)" style="border: none; background: #f8f9fa; padding: 0 10px; cursor: pointer; height: 100%; font-weight: bold; font-size: 16px;">+</button>
+                        </div>
                     </div>
                     <div class="summary-row" style="padding-top: 8px;">
-                        <span style="color: #28a745;" id="summary-product-name">{{ $page->weight_text ?? 'ইলিশ মাছের আচার (২০০ গ্রাম)' }} x 1</span>
+                        <span>Unit Price</span>
                         <span style="color: #28a745;" id="summary-product-price">৳ {{ $page->current_price ?? '৩৫০' }}</span>
                     </div>
                     <div class="summary-row" style="border-bottom: 1px solid #eee; padding-bottom: 8px;">
@@ -611,6 +627,36 @@
     <script>
         const productOptions = @json($page->product_options ?? []);
 
+        function changeQty(change) {
+            const qtyInput = document.getElementById('quantity');
+            let currentVal = parseInt(qtyInput.value) || 1;
+            let newVal = currentVal + change;
+            if (newVal < 1) newVal = 1;
+            qtyInput.value = newVal;
+            updateTotal();
+        }
+
+        function checkFields() {
+            const name = document.querySelector('input[name="name"]').value;
+            const phone = document.querySelector('input[name="phone"]').value;
+            const address = document.querySelector('input[name="address"]').value;
+            const btn = document.querySelector('.btn-submit');
+            if(name.trim() !== '' && phone.trim() !== '' && address.trim() !== '') {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.checkout-left input[required]');
+            inputs.forEach(input => {
+                input.addEventListener('input', checkFields);
+            });
+            // Initial check in case browser auto-fills
+            checkFields();
+        });
+
         function updateTotal() {
             let shippingCost = 100;
             
@@ -644,12 +690,16 @@
                 productName = '{{ $page->weight_text ?? "ইলিশ মাছের আচার (২০০ গ্রাম)" }}';
             }
             
-            const total = productCost + shippingCost;
+            let quantity = parseInt(document.getElementById('quantity').value) || 1;
+            let totalProductCost = productCost * quantity;
+            const total = totalProductCost + shippingCost;
             
             // Convert to Bengali numerals
             const bnShippingCost = convertToBn(shippingCost);
             const bnProductCost = convertToBn(productCost);
+            const bnTotalProductCost = convertToBn(totalProductCost);
             const bnTotal = convertToBn(total);
+            const bnQuantity = convertToBn(quantity);
             
             document.getElementById('shipping-cost').innerText = '৳ ' + bnShippingCost;
             document.getElementById('total-cost').innerText = '৳ ' + bnTotal;
@@ -660,13 +710,13 @@
             const summarySubtotalEl = document.getElementById('summary-subtotal');
             
             if (summaryNameEl) {
-                summaryNameEl.innerText = productName + ' x 1';
+                summaryNameEl.innerText = productName;
             }
             if (summaryPriceEl) {
                 summaryPriceEl.innerText = '৳ ' + bnProductCost;
             }
             if (summarySubtotalEl) {
-                summarySubtotalEl.innerText = '৳ ' + bnProductCost;
+                summarySubtotalEl.innerText = '৳ ' + bnTotalProductCost;
             }
         }
         

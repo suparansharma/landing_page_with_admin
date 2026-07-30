@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class LandingController extends Controller
 {
+    public function index()
+    {
+        $pages = LandingPage::latest()->get();
+        $officeProfile = \App\Models\OfficeProfile::first();
+        return view('home', compact('pages', 'officeProfile'));
+    }
     public function show($slug)
     {
         $page = LandingPage::where('slug', $slug)->firstOrFail();
@@ -23,15 +29,15 @@ class LandingController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
-            'thana' => 'required|string|max:255',
-            'product_option_index' => 'nullable|integer'
+            'product_option_index' => 'nullable|integer',
+            'quantity' => 'nullable|integer|min:1'
         ]);
 
         // Create Customer
         $customer = Customer::create([
             'name' => $data['name'],
             'phone' => $data['phone'],
-            'address' => $data['address'] . ', Thana/Upazila: ' . $data['thana'],
+            'address' => $data['address'],
         ]);
 
         $productCostNum = 0;
@@ -58,8 +64,11 @@ class LandingController extends Controller
             $selectedOptionName = $page->weight_text ?? 'ইলিশ মাছের আচার (২০০ গ্রাম)';
         }
 
+        $quantity = $data['quantity'] ?? 1;
+        $totalProductCost = $productCostNum * $quantity;
+
         $shippingCost = 100.00;
-        $totalAmount = $productCostNum + $shippingCost;
+        $totalAmount = $totalProductCost + $shippingCost;
 
         // Create Order
         $order = Order::create([
@@ -67,9 +76,9 @@ class LandingController extends Controller
             'customer_id' => $customer->id,
             'shipping_area' => 'Flat Shipping',
             'shipping_cost' => $shippingCost,
-            'product_cost' => $productCostNum,
+            'product_cost' => $totalProductCost,
             'total_amount' => $totalAmount,
-            'product_option' => $selectedOptionName,
+            'product_option' => $selectedOptionName . ' (Qty: ' . $quantity . ')',
             'status' => 'Pending'
         ]);
 

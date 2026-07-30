@@ -21,17 +21,20 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LandingController;
 use Illuminate\Support\Facades\Auth;
 
-Route::get('/', function () {
-    return redirect('/admin');
-});
+Route::get('/', [LandingController::class, 'index'])->name('home');
 
-Auth::routes(['register' => false]); // Disable public registration
+Route::get('admin', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+Route::post('admin', [App\Http\Controllers\Auth\LoginController::class, 'login']);
+Route::post('logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 Route::prefix('admin')->middleware('auth')->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    
+    Route::get('/office-profile', [\App\Http\Controllers\Admin\OfficeProfileController::class, 'index'])->name('admin.office-profile.index');
+    Route::post('/office-profile', [\App\Http\Controllers\Admin\OfficeProfileController::class, 'update'])->name('admin.office-profile.update');
     
     Route::resource('landing-pages', LandingPageController::class, ['as' => 'admin']);
-    Route::resource('orders', OrderController::class, ['as' => 'admin'])->only(['index', 'show']);
+    Route::resource('orders', OrderController::class, ['as' => 'admin']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update-status');
     Route::resource('customers', CustomerController::class, ['as' => 'admin'])->only(['index']);
     Route::resource('users', UserController::class, ['as' => 'admin'])->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -46,9 +49,7 @@ Route::get('/landing/{slug}', function ($slug) {
 Route::post('/landing/{slug}/order', [LandingController::class, 'storeOrder']);
 
 
-Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/clear-cache', function() {
     \Illuminate\Support\Facades\Artisan::call('route:clear');

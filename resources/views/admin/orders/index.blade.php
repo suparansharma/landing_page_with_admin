@@ -10,7 +10,7 @@
     <div class="card-body">
         <form action="{{ route('admin.orders.index') }}" method="GET" class="row gx-2 gy-2 align-items-center">
             <div class="col-md-3">
-                <input type="text" name="search" class="form-control" placeholder="Search name or phone..." value="{{ request('search') }}">
+                <input type="text" name="search" class="form-control" placeholder="Search ID, name or phone..." value="{{ request('search') }}">
             </div>
             <div class="col-md-3">
                 <select name="status" class="form-select">
@@ -45,6 +45,7 @@
                     <th>Landing Page</th>
                     <th>Customer</th>
                     <th>Phone</th>
+                    <th>Address</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -67,6 +68,7 @@
                     </td>
                     <td>{{ $order->customer->name ?? 'N/A' }}</td>
                     <td>{{ $order->customer->phone ?? 'N/A' }}</td>
+                    <td>{{ $order->customer->address ?? 'N/A' }}</td>
                     <td>৳ {{ number_format($order->total_amount, 2) }}</td>
                     <td>
                         <form action="{{ route('admin.orders.update-status', $order->id) }}" method="POST">
@@ -82,7 +84,15 @@
                         </form>
                     </td>
                     <td>
-                        <span class="badge bg-secondary">View</span>
+                        <div class="d-flex gap-1">
+                            <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-sm btn-info text-white" title="View">👁️</a>
+                            <a href="{{ route('admin.orders.edit', $order->id) }}" class="btn btn-sm btn-primary" title="Edit">✏️</a>
+                            <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this order?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">🗑️</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @endforeach
