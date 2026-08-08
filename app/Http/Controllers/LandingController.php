@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LandingPage;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\IncompleteOrder;
 use Illuminate\Http\Request;
 
 class LandingController extends Controller
@@ -19,6 +20,23 @@ class LandingController extends Controller
     {
         $page = LandingPage::where('slug', $slug)->firstOrFail();
         return view('landing', compact('page'));
+    }
+
+    public function storeIncompleteOrder(Request $request, $slug)
+    {
+        $page = LandingPage::where('slug', $slug)->firstOrFail();
+        $sessionId = session()->getId();
+
+        IncompleteOrder::updateOrCreate(
+            ['session_id' => $sessionId, 'landing_page_id' => $page->id],
+            [
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'address' => $request->address,
+            ]
+        );
+
+        return response()->json(['success' => true]);
     }
 
     public function storeOrder(Request $request, $slug)
@@ -81,6 +99,12 @@ class LandingController extends Controller
             'product_option' => $selectedOptionName . ' (Qty: ' . $quantity . ')',
             'status' => 'Pending'
         ]);
+
+        // Remove incomplete order if exists for this session
+        $sessionId = session()->getId();
+        IncompleteOrder::where('session_id', $sessionId)
+            ->where('landing_page_id', $page->id)
+            ->delete();
 
         return redirect()->back()
             ->with('success', 'আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে। আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।')

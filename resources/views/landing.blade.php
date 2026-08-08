@@ -776,6 +776,62 @@
                 confirmButtonColor: '#dc3545'
             });
         @endif
+
+        // Incomplete Order Tracking
+        let incompleteOrderTimeout = null;
+        let isSubmitting = false;
+
+        function saveIncompleteOrder() {
+            if (isSubmitting) return;
+
+            const name = document.querySelector('input[name="name"]').value;
+            const phone = document.querySelector('input[name="phone"]').value;
+            const address = document.querySelector('input[name="address"]').value;
+            
+            // Only send if at least one field has some data
+            if (name.trim() !== '' || phone.trim() !== '' || address.trim() !== '') {
+                const token = document.querySelector('input[name="_token"]').value;
+                
+                fetch('{{ route("product.incomplete-order", $page->slug) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        phone: phone,
+                        address: address
+                    })
+                }).catch(err => console.error('Incomplete order tracking failed', err));
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form[action="{{ route('product.order', $page->slug) }}"]');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    isSubmitting = true;
+                    clearTimeout(incompleteOrderTimeout);
+                });
+            }
+
+            const inputs = document.querySelectorAll('.checkout-left input[required]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    checkFields();
+                    // Debounce tracking
+                    clearTimeout(incompleteOrderTimeout);
+                    incompleteOrderTimeout = setTimeout(saveIncompleteOrder, 1000);
+                });
+                
+                input.addEventListener('blur', function() {
+                    setTimeout(saveIncompleteOrder, 200);
+                });
+            });
+            // Initial check in case browser auto-fills
+            checkFields();
+        });
     </script>
 </body>
 </html>

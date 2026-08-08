@@ -16,6 +16,11 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        
+        // Auto-delete incomplete orders older than 7 days
+        $schedule->call(function () {
+            \App\Models\IncompleteOrder::where('created_at', '<', now()->subDays(7))->delete();
+        })->daily();
     }
 
     /**

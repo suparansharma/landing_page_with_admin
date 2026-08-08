@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LandingPageController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\IncompleteOrderController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\LandingController;
@@ -35,6 +36,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     
     Route::resource('landing-pages', LandingPageController::class, ['as' => 'admin']);
     Route::resource('orders', OrderController::class, ['as' => 'admin']);
+    Route::resource('incomplete-orders', IncompleteOrderController::class, ['as' => 'admin'])->only(['index', 'destroy']);
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update-status');
     Route::resource('customers', CustomerController::class, ['as' => 'admin'])->only(['index']);
     Route::resource('users', UserController::class, ['as' => 'admin'])->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
@@ -42,6 +44,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
 
 Route::get('/product/{slug}', [LandingController::class, 'show'])->name('product.show');
 Route::post('/product/{slug}/order', [LandingController::class, 'storeOrder'])->name('product.order');
+Route::post('/product/{slug}/incomplete-order', [LandingController::class, 'storeIncompleteOrder'])->name('product.incomplete-order');
 
 Route::get('/landing/{slug}', function ($slug) {
     return redirect()->route('product.show', ['slug' => $slug]);

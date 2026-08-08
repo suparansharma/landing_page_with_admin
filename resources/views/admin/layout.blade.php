@@ -24,6 +24,7 @@
             <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">Dashboard</a>
             <a href="{{ route('admin.landing-pages.index') }}" class="{{ request()->routeIs('admin.landing-pages.*') ? 'active' : '' }}">Landing Pages</a>
             <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">Orders</a>
+            <a href="{{ route('admin.incomplete-orders.index') }}" class="{{ request()->routeIs('admin.incomplete-orders.*') ? 'active' : '' }}">Incomplete Orders</a>
             <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">Customers</a>
             <a href="{{ route('admin.office-profile.index') }}" class="{{ request()->routeIs('admin.office-profile.*') ? 'active' : '' }}">Office Profile</a>
             <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Users (Admins)</a>
